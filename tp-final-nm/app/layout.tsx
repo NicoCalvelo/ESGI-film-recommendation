@@ -14,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className={`h-full antialiased`}>
-      <body className="min-h-full flex text-gray-50 bg-slate-950">
+      <body className="min-h-full flex text-gray-50 bg-slate-950 w-screen overflow-x-hidden">
         <NavBar />
         <main className="flex-1 p-4">{children}</main>
       </body>
