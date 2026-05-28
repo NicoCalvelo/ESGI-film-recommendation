@@ -1,20 +1,25 @@
 import Link from "next/link";
 import LoginCard from "./_client/LoginCard";
+import { Home, MonitorPlay, Clapperboard, Book } from "lucide-react";
 
 const paths = [
-  { name: "Accueil", href: "/" },
-  { name: "Films", href: "/movies" },
-  { name: "Séries", href: "/series" },
-  { name: "Livres", href: "/books" },
+  { name: "Accueil", href: "/", icon: Home },
+  { name: "Films", href: "/movies", icon: Clapperboard },
+  { name: "Séries", href: "/series", icon: MonitorPlay },
+  { name: "Livres", href: "/books", icon: Book },
 ];
 
 export default function NavBar() {
   return (
-    <nav className="bg-slate-800 text-white p-4 w-min">
+    <nav className="bg-slate-800 text-white p-2 w-64">
       <LoginCard />
-      <ul className="flex flex-col gap-4">
+      <ul className="flex flex-col py-6">
         {paths.map((path) => (
-          <li key={path.href} className="text-lg hover:bg-blue-900 rounded px-2 py-1 transition">
+          <li
+            key={path.href}
+            className="text-lg hover:bg-blue-900 hover:underline rounded px-3 py-2 cursor-pointer transition border-b last:border-b-0 border-gray-700"
+          >
+            {path.icon && <path.icon className="inline-block mr-2" />}
             <Link href={path.href}>{path.name}</Link>
           </li>
         ))}
