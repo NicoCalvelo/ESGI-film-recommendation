@@ -2,7 +2,16 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  preferences: {
+  likes: {
+    genres: string[];
+    actors: string[];
+    directors: string[];
+    books: string[];
+    films: string[];
+    series: string[];
+    anime: string[];
+  };
+  dislikes: {
     genres: string[];
     actors: string[];
     directors: string[];

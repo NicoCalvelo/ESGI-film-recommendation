@@ -57,7 +57,16 @@ export function signUp(name: string, email: string, saltedPassword: string, salt
     email,
     password,
     salt,
-    preferences: {
+    likes: {
+      genres: [],
+      actors: [],
+      directors: [],
+      books: [],
+      films: [],
+      series: [],
+      anime: [],
+    },
+    dislikes: {
       genres: [],
       actors: [],
       directors: [],
