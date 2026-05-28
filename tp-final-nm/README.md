@@ -34,3 +34,39 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+
+
+# Liste des routes :
+
+/api/gutendex/getList?page=1
+
+```json
+{
+  "count": 78580,
+  "next": "https://gutendex.com/books/?page=2",
+  "previous": null,
+  "results": [ {book x32} ]
+}
+```
+
+Book : 
+
+```json
+{
+  "id": <number of Project Gutenberg ID>,
+  "title": <string>,
+  "authors": <array of Persons>,
+  "summaries": <array of strings>,
+  "editors": <array of Persons>,
+  "translators": <array of Persons>,
+  "subjects": <array of strings>,
+  "bookshelves": <array of strings>,
+  "languages": <array of strings>,
+  "copyright": <boolean or null>,
+  "media_type": <string>,
+  "formats": <Format>,
+  "download_count": <number>
+}
+```
