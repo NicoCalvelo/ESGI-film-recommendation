@@ -1,6 +1,7 @@
 import Link from "next/link";
 import LoginCard from "./_client/LoginCard";
 import { Home, MonitorPlay, Clapperboard, Book } from "lucide-react";
+import { UserProvider } from "../_contexts/UserContext";
 
 const paths = [
   { name: "Accueil", href: "/", icon: Home },
@@ -12,7 +13,9 @@ const paths = [
 export default function NavBar() {
   return (
     <nav className="bg-slate-800 text-white p-2 w-64">
-      <LoginCard />
+      <UserProvider>
+        <LoginCard />
+      </UserProvider>
       <ul className="flex flex-col py-6">
         {paths.map((path) => (
           <li
