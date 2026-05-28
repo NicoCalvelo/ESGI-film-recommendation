@@ -70,3 +70,15 @@ Book :
   "download_count": <number>
 }
 ```
+
+/api/studioghibli/getList
+
+Retourne tout les films du studio Ghbili
+
+/api/jikan/getList
+
+Retourne les 25 animes les plus connus
+
+/api/jikan/getList?query=<string>&page=<number>
+
+Retourne une liste d'anime en fonction de la recherche
