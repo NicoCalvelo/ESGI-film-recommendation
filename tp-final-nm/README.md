@@ -15,9 +15,9 @@ Ouvrir [http://localhost:3000](http://localhost:3000)
 
 ## 📋 État du Projet
 
-### ✅ API Routes Implémentées (Content Retrieval)
+### ✅ API Routes Implémentées
 
-Les 4 APIs externes sont connectées et fonctionnelles pour la recherche et l'exploration :
+Les 4 APIs externes sont connectées et fonctionnelles pour la recherche et l'exploration, et la recherche d'utilisateurs est disponible :
 
 #### 1. **Gutendex API** (Livres)
 - **Route:** `/api/gutendex/getList`
@@ -45,19 +45,17 @@ Les 4 APIs externes sont connectées et fonctionnelles pour la recherche et l'ex
 - **Route:** `/api/studioghibli/getList`
 - **Réponse:** Tous les films du studio Ghibli avec titre, image, année, score
 
+#### 5. **User Search API** (Recherche d'utilisateurs)
+- **Route:** `/api/users/search`
+- **Paramètres:**
+  - `query` (optionnel): Terme de recherche (nom ou email)
+- **Réponse:** Liste d'utilisateurs correspondants (excluant l'utilisateur actuellement connecté)
+
 ---
 
 ### ❌ API Routes Manquantes (À Implémenter)
 
-**PRIORITÉ 1 - Recommendations:**
-- `GET /api/recommendations` - Générer des recommandations basées sur la bibliothèque
-- `POST /api/recommendations/compare` - Comparer deux utilisateurs et suggérer des contenus communs
-
-**PRIORITÉ 2 - Social Features:**
-- `GET /api/users/search` - Chercher d'autres utilisateurs
-- `GET /api/users/[userId]/compatibility` - Score de compatibilité entre deux utilisateurs
-
-**PRIORITÉ 3 - Content Details:**
+**PRIORITÉ 1 - Content Details:**
 - `GET /api/content/[source]/[id]` - Récupérer détails d'un contenu avec filtre spoilers
 - Logic spoiler-free: masquer synopsis, personnages, détails narratifs
 
@@ -157,13 +155,14 @@ Suggestion: **React Context** ou **Zustand** pour:
 
 Backend:
 - [x] User authentication system (signup/login) - localStorage
-- [ ] Recommendation algorithm API
-- [ ] User search API
-- [ ] User compatibility comparison API
-- [ ] Spoiler-free content detail API
+- [x] Recommendation algorithm API (`/api/recommendations`)
+- [x] User comparison API (`/api/recommendations/compare`)
+- [x] User search API (`/api/users/search`)
+- [ ] Spoiler-free content detail API (`/api/content/[source]/[id]`)
 - [ ] Error handling & validation
 
 Frontend:
+- [x] User authentication UI (Login/SignUp Modals)
 - [ ] Search interface pour chaque API
 - [ ] Library management UI (localStorage)
 - [ ] Recommendations display
@@ -174,17 +173,38 @@ Frontend:
 
 ---
 
-## 🤝 Notes pour le Frontend Developer
+## 📚 Services Disponibles
 
-**Prêt à utiliser:**
+### Backend Services:
+- **AuthService** - Authentification et gestion des utilisateurs
+- **UserPreferencesService** - Gestion des likes/dislikes par catégorie
+- **RecommendationsService** - Moteur de recommandations et comparaison d'utilisateurs
+
+### API Routes:
+```
+GET  /api/gutendex/getList
+GET  /api/tvmaze/getList
+GET  /api/jikan/getList
+GET  /api/studioghibli/getList
+POST /api/recommendations
+POST /api/recommendations/compare
+GET  /api/users/search
+```
+
+### Client Utilities:
+- **recommendationsClient** - Fonctions pour appeler les API de recommandations depuis le frontend
+
+---
+
+**Prêt à utiliser (Backend):**
 - ✅ Les 4 APIs content retrieval (`/api/[source]/getList`)
 - ✅ Authentification (AuthService avec localStorage)
-- ✅ Stockage de la bibliothèque personnelle (localStorage)
+- ✅ Gestion des préférences utilisateur (UserPreferencesService)
+- ✅ Recommandations (`POST /api/recommendations`)
+- ✅ Comparaison d'utilisateurs (`POST /api/recommendations/compare`)
+- ✅ Recherche d'utilisateurs (`GET /api/users/search`)
 
-**À développer/implémenter côté backend:**
-- `/api/recommendations` - Suggestion d'œuvres basée sur goûts utilisateur
-- `/api/users/search` - Chercher d'autres utilisateurs
-- `/api/users/[id]/compatibility` - Comparer deux utilisateurs
+**À développer côté backend:**
 - `/api/content/[source]/[id]` - Détails d'une œuvre avec filtre spoiler
 
 **Persistance client-side (localStorage):**
@@ -275,3 +295,7 @@ Retourne les 25 animes les plus connus
 /api/jikan/getList?query=<string>&page=<number>
 
 Retourne une liste d'anime en fonction de la recherche
+
+/api/users/search?query=<string>
+
+Retourne une liste des utilisateurs correspondant à la recherche (excluant l'utilisateur connecté)
