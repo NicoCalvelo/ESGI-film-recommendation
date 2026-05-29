@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchMockUsers, getMockUsers } from '@/app/_utils/mockUsers';
-import { getCurrentUser } from '@/app/_services/AuthService';
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get('query') || '';
-
-    const currentUser = getCurrentUser();
-    const excludeId = currentUser ? currentUser.id : undefined;
+    const excludeId = searchParams.get('excludeId') || undefined;
 
     if (!query) {
       // return first 5 mock users excluding current
