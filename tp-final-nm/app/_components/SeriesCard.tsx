@@ -76,7 +76,7 @@ export default function SeriesCard({ series }: SeriesCardProps) {
         </div>
       </Link>
       <UserProvider>
-        <LikeDislikeBar category="series" value={show.name} />
+        <LikeDislikeBar category="series" value={show.name} associatedGenres={show.genres} />
       </UserProvider>
     </div>
   );

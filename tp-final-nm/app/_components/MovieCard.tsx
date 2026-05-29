@@ -47,7 +47,7 @@ export default function MovieCard({ movie }: MovieCardProps) {
         </div>
       </Link>
       <UserProvider>
-        <LikeDislikeBar category="films" value={movie.title} />
+        <LikeDislikeBar category="films" value={movie.title} associatedDirectors={[movie.director]} />
       </UserProvider>
     </div>
   );

@@ -3,6 +3,109 @@ import { getCurrentUser } from "@/app/_services/AuthService";
 
 type PreferenceCategory = keyof User['likes'];
 
+const GHIBLI_MOVIE_METADATA: Record<string, { genres: string[]; actors: string[] }> = {
+  "Nausicaä of the Valley of the Wind": {
+    genres: ["Animation", "Adventure", "Fantasy", "Sci-Fi"],
+    actors: ["Nausicaä", "Asbel", "Kushana"]
+  },
+  "Castle in the Sky": {
+    genres: ["Animation", "Adventure", "Fantasy", "Sci-Fi"],
+    actors: ["Pazu", "Sheeta", "Muska"]
+  },
+  "Grave of the Fireflies": {
+    genres: ["Animation", "Drama", "War"],
+    actors: ["Seita", "Setsuko"]
+  },
+  "My Neighbor Totoro": {
+    genres: ["Animation", "Family", "Fantasy"],
+    actors: ["Satsuki", "Mei", "Totoro"]
+  },
+  "Kiki's Delivery Service": {
+    genres: ["Animation", "Adventure", "Drama", "Family", "Fantasy"],
+    actors: ["Kiki", "Jiji", "Osono"]
+  },
+  "Only Yesterday": {
+    genres: ["Animation", "Drama", "Romance"],
+    actors: ["Taeko", "Toshio"]
+  },
+  "Porco Rosso": {
+    genres: ["Animation", "Comedy", "Adventure", "Romance"],
+    actors: ["Porco Rosso", "Fio", "Gina"]
+  },
+  "Ocean Waves": {
+    genres: ["Animation", "Drama", "Romance"],
+    actors: ["Taku Morisaki", "Yutaka Matsuno", "Rikako Muto"]
+  },
+  "Pom Poko": {
+    genres: ["Animation", "Comedy", "Fantasy"],
+    actors: ["Shoukichi", "Okiyo", "Seizaemon"]
+  },
+  "Whisper of the Heart": {
+    genres: ["Animation", "Drama", "Family", "Romance"],
+    actors: ["Shizuku", "Seiji"]
+  },
+  "Princess Mononoke": {
+    genres: ["Animation", "Adventure", "Fantasy", "Action"],
+    actors: ["Ashitaka", "San", "Eboshi"]
+  },
+  "My Neighbors the Yamadas": {
+    genres: ["Animation", "Comedy", "Family"],
+    actors: ["Takashi", "Matsuko"]
+  },
+  "Spirited Away": {
+    genres: ["Animation", "Adventure", "Fantasy", "Drama"],
+    actors: ["Chihiro", "Haku", "Yubaba", "No-Face"]
+  },
+  "The Cat Returns": {
+    genres: ["Animation", "Adventure", "Fantasy", "Comedy"],
+    actors: ["Haru", "Baron", "Muta"]
+  },
+  "Howl's Moving Castle": {
+    genres: ["Animation", "Adventure", "Fantasy", "Romance"],
+    actors: ["Sophie", "Howl", "Calcifer"]
+  },
+  "Tales from Earthsea": {
+    genres: ["Animation", "Adventure", "Fantasy"],
+    actors: ["Arren", "Therru", "Ged"]
+  },
+  "Ponyo": {
+    genres: ["Animation", "Adventure", "Family", "Fantasy"],
+    actors: ["Sosuke", "Ponyo", "Fujimoto"]
+  },
+  "Arrietty": {
+    genres: ["Animation", "Adventure", "Family", "Fantasy"],
+    actors: ["Arrietty", "Sho", "Homily"]
+  },
+  "From Up on Poppy Hill": {
+    genres: ["Animation", "Drama", "Romance"],
+    actors: ["Umi", "Shun"]
+  },
+  "The Wind Rises": {
+    genres: ["Animation", "Biography", "Drama", "Romance"],
+    actors: ["Jiro Horikoshi", "Naoko Satomi"]
+  },
+  "The Tale of the Princess Kaguya": {
+    genres: ["Animation", "Drama", "Fantasy"],
+    actors: ["Kaguya", "Sutemaru"]
+  },
+  "When Marnie Was There": {
+    genres: ["Animation", "Drama", "Mystery"],
+    actors: ["Anna Sasaki", "Marnie"]
+  },
+  "The Red Turtle": {
+    genres: ["Animation", "Adventure", "Drama", "Fantasy"],
+    actors: ["Castaway", "Red Turtle"]
+  },
+  "Earwig and the Witch": {
+    genres: ["Animation", "Fantasy", "Family"],
+    actors: ["Earwig", "Bella Yaga", "The Mandrake"]
+  },
+  "The Boy and the Heron": {
+    genres: ["Animation", "Adventure", "Fantasy", "Drama"],
+    actors: ["Mahito", "Grey Heron", "Himi"]
+  }
+};
+
 /**
  * Get current user's preferences from localStorage
  */
@@ -34,6 +137,19 @@ export function addLike(category: PreferenceCategory, value: string): void {
     }
 
     updateUserPreferences(user);
+
+    // If we just liked a movie (films), also like its actors and categories
+    if (category === "films") {
+      const metadata = GHIBLI_MOVIE_METADATA[value];
+      if (metadata) {
+        metadata.genres.forEach((genre) => {
+          addLike("genres", genre);
+        });
+        metadata.actors.forEach((actor) => {
+          addLike("actors", actor);
+        });
+      }
+    }
   }
 }
 

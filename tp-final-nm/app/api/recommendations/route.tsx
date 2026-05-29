@@ -1,6 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateUserRecommendations } from '@/app/_services/RecommendationsService';
 import { User } from '@/app/_interfaces/user';
+import { getMockUsers } from '@/app/_utils/mockUsers';
+
+function getCommunityUser(): User {
+  const allUsers = getMockUsers();
+  const genreCounts: Record<string, number> = {};
+  const actorCounts: Record<string, number> = {};
+  const directorCounts: Record<string, number> = {};
+  
+  const disGenreCounts: Record<string, number> = {};
+
+  allUsers.forEach(u => {
+    u.likes.genres.forEach(g => genreCounts[g] = (genreCounts[g] || 0) + 1);
+    u.likes.actors.forEach(a => actorCounts[a] = (actorCounts[a] || 0) + 1);
+    u.likes.directors.forEach(d => directorCounts[d] = (directorCounts[d] || 0) + 1);
+    
+    u.dislikes.genres.forEach(g => disGenreCounts[g] = (disGenreCounts[g] || 0) + 1);
+  });
+
+  const topGenres = Object.entries(genreCounts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(e => e[0]);
+  const topActors = Object.entries(actorCounts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(e => e[0]);
+  const topDirectors = Object.entries(directorCounts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(e => e[0]);
+  const topDisGenres = Object.entries(disGenreCounts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(e => e[0]);
+
+  return {
+    id: 'community',
+    name: 'Communauté',
+    email: '',
+    likes: { genres: topGenres, actors: topActors, directors: topDirectors, books: [], films: [], series: [], anime: [] },
+    dislikes: { genres: topDisGenres, actors: [], directors: [], books: [], films: [], series: [], anime: [] }
+  };
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,12 +45,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const communityUser = getCommunityUser();
+
     // Fetch content from the appropriate API
-    let fetchedContent = [];
+    let fetchedContent: any[] = [];
 
     switch (source) {
       case 'gutendex': {
-        const gutendexResponse = await fetch('https://gutendex.com/books');
+        const userGenres: string[] = userPreferences.likes?.genres ?? [];
+        const communityGenres: string[] = communityUser.likes.genres;
+        
+        // Find a topic to search for, preferring user genres over community genres
+        const searchTopic = userGenres.length > 0 ? userGenres[0] : (communityGenres.length > 0 ? communityGenres[0] : '');
+        const url = searchTopic ? `https://gutendex.com/books?topic=${encodeURIComponent(searchTopic)}` : 'https://gutendex.com/books';
+        
+        const gutendexResponse = await fetch(url);
         if (gutendexResponse.ok) {
           const data = await gutendexResponse.json();
           fetchedContent = data.results || [];
@@ -37,26 +77,14 @@ export async function POST(request: NextRequest) {
       }
 
       case 'tvmaze': {
-        // Search by the user's liked genres to get relevant content
-        const genres: string[] = userPreferences.likes?.genres ?? [];
-        const queries = genres.slice(0, 3).length > 0 ? genres.slice(0, 3) : ['drama'];
-        const seen = new Set<number>();
-
-        const results = await Promise.all(
-          queries.map((q: string) =>
-            fetch(`https://api.tvmaze.com/search/shows?q=${encodeURIComponent(q)}`)
-              .then((r) => (r.ok ? r.json() : []))
-              .catch(() => [])
-          )
-        );
-
-        for (const batch of results) {
-          for (const item of batch) {
-            if (item?.show?.id && !seen.has(item.show.id)) {
-              seen.add(item.show.id);
-              fetchedContent.push(item);
-            }
-          }
+        // TVMaze does not have a native query parameter for genres. 
+        // We must fetch the shows index and filter them locally based on their associated genres.
+        // /shows returns 250 shows per page, which is sufficient for local filtering.
+        const tvmazeResponse = await fetch('https://api.tvmaze.com/shows');
+        if (tvmazeResponse.ok) {
+          const shows = await tvmazeResponse.json();
+          // Wrap the results in a 'show' property to maintain compatibility with RecommendationsService
+          fetchedContent = shows.map((show: any) => ({ show }));
         }
         break;
       }
@@ -83,10 +111,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Since we're on server-side, we'll create a temporary user object from preferences
-    // and use it to generate recommendations
     const tempUser: User = userPreferences;
 
+    // 1. Generate for current user
     const recommendations = generateUserRecommendations(
       fetchedContent,
       source as 'gutendex' | 'tvmaze' | 'jikan' | 'studioghibli',
@@ -94,6 +121,27 @@ export async function POST(request: NextRequest) {
       tempUser,
       category
     );
+
+    // 2. Fallback to community if < 5 items
+    if (recommendations.length < 5) {
+      const communityRecommendations = generateUserRecommendations(
+        fetchedContent,
+        source as 'gutendex' | 'tvmaze' | 'jikan' | 'studioghibli',
+        undefined,
+        communityUser,
+        category
+      );
+
+      const existingIds = new Set(recommendations.map((r) => r.id));
+      for (const rec of communityRecommendations) {
+        if (!existingIds.has(rec.id)) {
+          // Add a custom reason so user knows it's from the community
+          rec.matchReasons = ['Populaire dans la communauté', ...rec.matchReasons];
+          recommendations.push(rec);
+          existingIds.add(rec.id);
+        }
+      }
+    }
 
     const limitedRecommendations = recommendations.slice(0, Math.min(limit, 20));
 
@@ -120,37 +168,10 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  // GET version for simple requests (client should use POST for better control)
+  // GET version for simple requests
   return NextResponse.json(
     {
       message: 'Utilisez POST /api/recommendations avec { source, userPreferences, limit }',
-      example: {
-        source: 'jikan',
-        userPreferences: {
-          id: 'user123',
-          name: 'John',
-          email: 'john@example.com',
-          likes: {
-            genres: ['Action', 'Adventure'],
-            actors: [],
-            directors: [],
-            books: [],
-            films: [],
-            series: [],
-            anime: ['Anime'],
-          },
-          dislikes: {
-            genres: ['Horror'],
-            actors: [],
-            directors: [],
-            books: [],
-            films: [],
-            series: [],
-            anime: [],
-          },
-        },
-        limit: 10,
-      },
     },
     { status: 200 }
   );

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { toggleLike, toggleDislike, isLiked, isDisliked } from "@/app/_services/UserPreferencesService";
+import { toggleLike, toggleDislike, isLiked, isDisliked, addLike } from "@/app/_services/UserPreferencesService";
 import { User } from "@/app/_interfaces/user";
 import { useUser } from "@/app/_contexts/UserContext";
 import LoginModal from "./_modals/LoginModal";
@@ -14,9 +14,18 @@ type Modal = "login" | "signup" | null;
 interface LikeDislikeBarProps {
   category: PreferenceCategory;
   value: string;
+  associatedGenres?: string[];
+  associatedActors?: string[];
+  associatedDirectors?: string[];
 }
 
-export default function LikeDislikeBar({ category, value }: LikeDislikeBarProps) {
+export default function LikeDislikeBar({
+  category,
+  value,
+  associatedGenres,
+  associatedActors,
+  associatedDirectors,
+}: LikeDislikeBarProps) {
   const { user } = useUser();
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
@@ -34,7 +43,19 @@ export default function LikeDislikeBar({ category, value }: LikeDislikeBarProps)
       setOpenModal("login");
       return;
     }
+    const wasLiked = liked;
     toggleLike(category, value);
+    if (!wasLiked) {
+      if (associatedGenres) {
+        associatedGenres.forEach((g) => addLike("genres", g));
+      }
+      if (associatedActors) {
+        associatedActors.forEach((a) => addLike("actors", a));
+      }
+      if (associatedDirectors) {
+        associatedDirectors.forEach((d) => addLike("directors", d));
+      }
+    }
     setLiked(isLiked(category, value));
     setDisliked(isDisliked(category, value));
   };

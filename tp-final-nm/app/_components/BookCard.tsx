@@ -63,7 +63,12 @@ export default function BookCard({ book }: BookCardProps) {
         </div>
       </Link>
       <UserProvider>
-        <LikeDislikeBar category="books" value={book.title} />
+        <LikeDislikeBar
+          category="books"
+          value={book.title}
+          associatedGenres={book.subjects}
+          associatedDirectors={book.authors.map((a) => a.name)}
+        />
       </UserProvider>
     </div>
   );

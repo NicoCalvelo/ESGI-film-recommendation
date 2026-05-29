@@ -80,7 +80,7 @@ export default function AnimeCard({ anime }: AnimeCardProps) {
         </div>
       </Link>
       <UserProvider>
-        <LikeDislikeBar category="anime" value={anime.title} />
+        <LikeDislikeBar category="anime" value={anime.title} associatedGenres={anime.genres.map((g) => g.name)} />
       </UserProvider>
     </div>
   );
