@@ -16,7 +16,18 @@ export default function RootLayout({
     <html lang="fr" className={`h-full antialiased`}>
       <body className="min-h-full flex text-gray-50 bg-slate-950 w-screen overflow-x-hidden">
         <NavBar />
-        <main className="flex-1 p-4">{children}</main>
+        <main
+          className="flex-1 p-4 h-screen overflow-auto"
+          style={{
+            backgroundImage: "url('/background.svg')",
+            backgroundSize: "35px 35px",
+            backgroundPosition: "center",
+            backgroundRepeat: "repeat",
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 to-black/20 pointer-events-none" />
+          <div className={`relative z-10`}>{children}</div>
+        </main>
       </body>
     </html>
   );

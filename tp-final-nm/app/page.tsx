@@ -89,7 +89,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-gray-950">
+    <main className="min-h-screen">
       {/* ── Search hero / header ── */}
       <div
         className={`transition-all duration-700 ease-in-out ${
