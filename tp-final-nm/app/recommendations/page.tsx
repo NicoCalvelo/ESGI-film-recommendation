@@ -321,23 +321,6 @@ function RecommendationsContent() {
                   )}
                 </div>
 
-                {/* Bridge content */}
-                {Array.isArray(compatibility.bridgeContent) && compatibility.bridgeContent.length > 0 && (
-                  <div>
-                    <p className="text-gray-500 text-xs uppercase tracking-wider mb-3">Anime à regarder ensemble</p>
-                    <div className="flex flex-wrap gap-2">
-                      {(compatibility.bridgeContent as RecommendationItem[]).map((item) => (
-                        <Link
-                          key={item.id}
-                          href={`/details/anime/${item.id}`}
-                          className="text-sm px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-600 text-white hover:border-violet-500/60 transition"
-                        >
-                          {item.title}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
                 <button
                   onClick={() => {

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import BackButton from "../../_components/_client/BackButton";
+import SpoilerWrapper from "../../_components/_client/SpoilerWrapper";
 import { Movie } from "../../_interfaces/movie";
 import { Anime } from "../../_interfaces/anime";
 import { Book } from "../../_interfaces/book";
@@ -399,10 +400,13 @@ export default async function DetailsPage({ params }: Props) {
 
       {/* Synopsis / description */}
       {content.synopsis && (
-        <div className="mt-10">
-          <h2 className={`${accent.headingText} text-xl font-semibold mb-3`}>Synopsis</h2>
+        <SpoilerWrapper
+          title="Synopsis"
+          accentTextClass={accent.headingText}
+          accentButtonBg={accent.linkBg}
+        >
           <p className="text-gray-300 text-sm leading-relaxed">{content.synopsis}</p>
-        </div>
+        </SpoilerWrapper>
       )}
 
       {/* Trailer (anime) */}
@@ -442,14 +446,17 @@ export default async function DetailsPage({ params }: Props) {
 
       {/* Extra text blocks (book summaries) */}
       {content.summaries.length > 0 && (
-        <div className="mt-8">
-          <h2 className={`${accent.headingText} text-xl font-semibold mb-3`}>Résumé</h2>
+        <SpoilerWrapper
+          title="Résumé"
+          accentTextClass={accent.headingText}
+          accentButtonBg={accent.linkBg}
+        >
           {content.summaries.map((s, i) => (
-            <p key={i} className="text-gray-300 text-sm leading-relaxed mb-3">
+            <p key={i} className="text-gray-300 text-sm leading-relaxed mb-3 last:mb-0">
               {s}
             </p>
           ))}
-        </div>
+        </SpoilerWrapper>
       )}
     </div>
   );

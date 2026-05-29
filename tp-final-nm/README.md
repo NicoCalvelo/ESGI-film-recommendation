@@ -14,11 +14,11 @@ Ouvrir [http://localhost:3000](http://localhost:3000)
 ---
 
 ## 📋 État du Projet
-
+ 
 ### ✅ API Routes Implémentées
-
-Les 4 APIs externes sont connectées et fonctionnelles pour la recherche et l'exploration, et la recherche d'utilisateurs est disponible :
-
+ 
+Les 4 APIs externes sont connectées et fonctionnelles pour la recherche et l'exploration, la recherche d'utilisateurs est disponible, et le moteur de recommandations est complet :
+ 
 #### 1. **Gutendex API** (Livres)
 - **Route:** `/api/gutendex/getList`
 - **Paramètres:** 
@@ -26,151 +26,137 @@ Les 4 APIs externes sont connectées et fonctionnelles pour la recherche et l'ex
   - `search` (optionnel): Terme de recherche
   - `topic` (optionnel): Catégorie (ex: "Fiction")
 - **Réponse:** Liste de 32 livres avec titre, auteurs, genres, popularité
-
+ 
 #### 2. **TVMaze API** (Séries TV)
 - **Route:** `/api/tvmaze/getList`
 - **Paramètres:** 
   - `search` (requis): Terme de recherche
 - **Réponse:** Résultats triés par note (rating décroissant). Limite: ~10 résultats max
 - **Données:** Titre, image, genres, résumé, note, réseau diffuseur
-
+ 
 #### 3. **Jikan API** (Anime)
 - **Route:** `/api/jikan/getList`
 - **Paramètres:**
   - `search` (optionnel): Terme de recherche
   - `page` (optionnel): Numéro de page
 - **Réponse:** Liste d'animes avec titre, image, score, genres, type
-
+ 
 #### 4. **Studio Ghibli API** (Films Studio Ghibli)
 - **Route:** `/api/studioghibli/getList`
 - **Réponse:** Tous les films du studio Ghibli avec titre, image, année, score
-
+ 
 #### 5. **User Search API** (Recherche d'utilisateurs)
 - **Route:** `/api/users/search`
 - **Paramètres:**
   - `query` (optionnel): Terme de recherche (nom ou email)
 - **Réponse:** Liste d'utilisateurs correspondants (excluant l'utilisateur actuellement connecté)
 
+#### 6. **Recommendations API**
+- **Route:** `/api/recommendations`
+- **Paramètres:**
+  - `source` (requis): gutendex, tvmaze, jikan, ou studioghibli
+  - `userPreferences` (requis): profil de l'utilisateur
+  - `limit` (optionnel): limite de résultats
+- **Réponse:** Liste d'œuvres adaptées au profil. Garanti de renvoyer **au moins 5 résultats** par source grâce à un mécanisme de fallback sur les préférences communautaires calculées sur tous les profils.
+
+#### 7. **User Comparison API**
+- **Route:** `/api/recommendations/compare`
+- **Paramètres:**
+  - `user1` (requis) & `user2` (requis): les deux utilisateurs à comparer
+  - `source` (optionnel): source média pour trouver des œuvres ponts
+- **Réponse:** Score de compatibilité, genres/acteurs/réalisateurs communs et contenu "pont" conseillé pour les deux.
+ 
 ---
-
-### ❌ API Routes Manquantes (À Implémenter)
-
-**PRIORITÉ 1 - Content Details:**
-- `GET /api/content/[source]/[id]` - Récupérer détails d'un contenu avec filtre spoilers
-- Logic spoiler-free: masquer synopsis, personnages, détails narratifs
-
+ 
+### ❌ API Routes Optionnelles (Non requises)
+ 
+- `/api/content/[source]/[id]` - Remplacé par une gestion directe de l'API externe dans les React Server Components couplée au composant client de masquage anti-spoiler.
+ 
 ---
-
+ 
 ## 🗄️ Architecture - Données Locales (localStorage)
-
+ 
 **Authentification:** ✅ Déjà implémentée via AuthService
 - Signup/Login en localStorage
 - Gestion des mots de passe sécurisée (salt + piment)
 - Pas de base de données serveur
-
+ 
 **Données Utilisateur (localStorage):**
 ```
 app_users: Array<User>
 ├─ id, name, email, password (hashed)
-└─ favorites (array d'objets content)
+└─ likes & dislikes (genres, acteurs, réalisateurs, films, séries, anime, livres)
 
 app_current_user: User
 └─ utilisateur actuellement connecté
-
-app_user_library: Array<LibraryItem>
-├─ userId, contentId, source (gutendex/tvmaze/jikan/ghibli)
-├─ isFavorite, addedAt, status (watched/reading/etc)
-└─ personalNotes
-
-app_recommendations: Array<RecommendationItem>
-├─ userId, recommendedContentId, score, reason
-└─ createdAt
 ```
-
+ 
 ---
+ 
+## 🎨 Frontend & Backend - Fonctionnalités Implémentées
+ 
+1. **Search Page (Recherche globale)**
+   - Utilisation de `/api/[source]/getList` pour chercher simultanément sur les 4 APIs
+   - Affichage structuré sous forme de carrousels horizontaux avec classification (films, séries, animes, livres)
+   - Bouton de Like/Dislike rapide sur chaque carte
 
-## 🎨 Frontend - Conseils d'Intégration
+2. **Library Page (Mes Favoris)**
+   - Gestion des favoris (aimés) et indésirables (non aimés) stockés localement
+   - Tri par catégorie de média avec compteurs dynamiques
 
-### Pages/Features à Développer
+3. **Recommendations Page**
+   - Génère des suggestions personnalisées via l'API `/api/recommendations`
+   - Logique collaborative : fusionne les genres, acteurs et réalisateurs aimés pour trouver des correspondances
+   - **Garantie 5+** : Si les goûts personnels n'amènent pas à 5 résultats, le système complète avec les tendances de la communauté (*"Populaire dans la communauté"*)
+   - Mapping intelligent des catégories (ex. *"Adventure"* correspond à *"Adventure stories"* sur Gutendex, *"Sci-Fi"* à *"Science Fiction"*)
 
-1. **Search Page**
-   - Utiliser `/api/[source]/getList` pour chercher
-   - Afficher résultats avec: titre, image, type média, genres
-   - Ajouter à la bibliothèque
-
-2. **Library Page**
-   - Gérer les contenus sauvegardés en localStorage
-   - CRUD: ajouter, supprimer, marquer comme favori
-   - Filtrer par type de média
-
-3. **Recommendations**
-   - Nécessite: `/api/recommendations` (backend)
-   - Logique simple: genres communs, tags, ambiance
-   - Basé sur la bibliothèque localStorage
-
-4. **Multi-User Comparison**
-   - Chercher d'autres utilisateurs (créés localement)
-   - Comparer leurs bibliothèques
-   - Suggestions de contenu "pont"
-   - Nécessite: `/api/users/search` + `/api/users/[id]/compatibility` (backend)
+4. **Multi-User Comparison (Comparer avec un ami)**
+   - Recherche d'utilisateurs créés localement (ou des profils mockés de la communauté)
+   - Calcul d'un score de compatibilité (0-100%) basé sur les genres/acteurs/réalisateurs communs
+   - Suggestion de contenus "ponts" (œuvres appréciables par les deux profils)
 
 5. **Spoiler-Free Mode**
-   - Toggle entre vue sûre (genres, durée, popularité) et détaillée (synopsis, perso)
-   - Identifier les contenus déjà dans la bibliothèque
-
-### État Management
-Suggestion: **React Context** ou **Zustand** pour:
-- Utilisateur connecté (depuis AuthService)
-- Bibliothèque personnelle (depuis localStorage)
-- Préférences UI (spoiler-free toggle)
-- Cache des résultats de recherche
-
+   - Implémenté sur les pages de détails grâce au composant interactif `SpoilerWrapper`
+   - Masque par défaut (floutage) le synopsis et les résumés détaillés des livres
+   - Permet de révéler le contenu en un clic, et d'activer/désactiver globalement la protection via une option persistante
+ 
 ---
-
+ 
 ## 🔐 Sécurité
-
-**Authentification:** ✅ Déjà sécurisée
+ 
+**Authentification:** ✅ Sécurisée
 - Mots de passe hachés avec salt + piment
 - Stockage localStorage seulement
-
-**À vérifier côté frontend:**
-- Ne pas afficher les données sensibles en dur
-- Valider les entrées utilisateur
-- Nettoyer localStorage lors du logout
-
+ 
 ---
-
+ 
 ## 📦 Stack Technique
-
-- **Frontend:** React, TypeScript
-- **Backend:** Next.js API Routes
-- **Styling:** CSS Modules / TailwindCSS
+ 
+- **Frontend:** React, TypeScript, TailwindCSS, Lucide Icons
+- **Backend:** Next.js API Routes (App Router)
 - **External APIs:** Gutendex, TVMaze, Jikan, Studio Ghibli
 - **Storage:** localStorage (clé-valeur JSON)
 - **Authentication:** AuthService avec hachage sécurisé
-
+ 
 ---
-
+ 
 ## 📝 Checklist de Complétion
-
-Backend:
-- [x] User authentication system (signup/login) - localStorage
-- [x] Recommendation algorithm API (`/api/recommendations`)
-- [x] User comparison API (`/api/recommendations/compare`)
-- [x] User search API (`/api/users/search`)
-- [ ] Spoiler-free content detail API (`/api/content/[source]/[id]`)
-- [ ] Error handling & validation
-
-Frontend:
-- [x] User authentication UI (Login/SignUp Modals)
-- [ ] Search interface pour chaque API
-- [ ] Library management UI (localStorage)
-- [ ] Recommendations display
-- [ ] User profile & comparison
-- [ ] Spoiler-free toggle
-- [ ] Multi-user mode UI
-- [ ] Add to library button
-
+ 
+Backend :
+- [x] Moteur de recommandation (`/api/recommendations`) avec fallback communautaire
+- [x] API de comparaison et de contenu pont (`/api/recommendations/compare`)
+- [x] API de recherche d'utilisateurs (`/api/users/search`)
+- [x] Correction des APIs d'exploration (TVMaze et Gutendex modifiés pour chercher par genre/sujet et non par nom de genre)
+ 
+Frontend :
+- [x] Interface de recherche globale multi-sources
+- [x] Modals d'inscription / connexion
+- [x] Page de favoris et gestion des bibliothèques (Likes/Dislikes)
+- [x] Page de recommandations avec affichage des scores de pertinence
+- [x] Système de comparaison d'utilisateurs et de suggestion de films/séries ponts
+- [x] Intégration du composant anti-spoiler interactif sur les fiches de détails
+- [x] Cascade de favoris automatique (liker une œuvre ajoute ses catégories/acteurs aux favoris)
+ 
 ---
 
 ## 📚 Services Disponibles

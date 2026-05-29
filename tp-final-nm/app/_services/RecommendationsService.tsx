@@ -56,6 +56,32 @@ function analyzeUserPreferences(user: User): {
 }
 
 /**
+ * Helper to match genres with case-insensitivity and substring/mapping checks
+ */
+export function isGenreMatch(contentGenre: string, likedGenres: string[]): boolean {
+  return likedGenres.some((likedG) => {
+    const gLower = contentGenre.toLowerCase();
+    const likedGLower = likedG.toLowerCase();
+    
+    if (gLower === likedGLower) return true;
+    
+    // Substring match for genres (e.g. "Adventure" matches "Adventure stories", "Science Fiction" matches "Science fiction -- Fiction")
+    if (likedGLower.length > 3 && gLower.includes(likedGLower)) return true;
+    if (gLower.length > 3 && likedGLower.includes(gLower)) return true;
+    
+    // Sci-Fi mapping (e.g. "Sci-Fi" matches "Science Fiction" and vice versa)
+    if (
+      (likedGLower.includes('sci-fi') || likedGLower.includes('science fiction')) &&
+      (gLower.includes('sci-fi') || gLower.includes('science fiction'))
+    ) {
+      return true;
+    }
+    
+    return false;
+  });
+}
+
+/**
  * Calculate recommendation score based on content metadata
  */
 function calculateMatchScore(
@@ -68,7 +94,7 @@ function calculateMatchScore(
   const reasons: string[] = [];
 
   // Check for disliked content first
-  const hasDislikedGenre = contentGenres.some((g) => analysis.dislikedGenres.includes(g));
+  const hasDislikedGenre = contentGenres.some((g) => isGenreMatch(g, analysis.dislikedGenres));
   if (hasDislikedGenre) {
     return { score: 0, reasons: ['Contient un genre rejeté'] };
   }
@@ -79,7 +105,7 @@ function calculateMatchScore(
   }
 
   // Match genres
-  const matchedGenres = contentGenres.filter((g) => analysis.likedGenres.includes(g));
+  const matchedGenres = contentGenres.filter((g) => isGenreMatch(g, analysis.likedGenres));
   if (matchedGenres.length > 0) {
     score += matchedGenres.length * 25;
     reasons.push(`Contient genres aimés: ${matchedGenres.join(', ')}`);
@@ -149,12 +175,14 @@ export function generateUserRecommendations(
         image = content.show?.image?.medium || undefined;
         break;
 
-      case 'jikan':
+      case 'jikan': {
         title = content.data?.title || content.title || '';
-        id = content.data?.mal_id || content.id || '';
-        genres = content.data?.genres?.map((g: any) => g.name) || [];
-        image = content.data?.images?.jpg?.image_url || undefined;
+        id = content.data?.mal_id || content.mal_id || content.id || '';
+        const rawGenres = content.data?.genres || content.genres || [];
+        genres = rawGenres.map((g: any) => g.name || g) || [];
+        image = content.data?.images?.jpg?.image_url || content.images?.jpg?.image_url || undefined;
         break;
+      }
 
       case 'studioghibli':
         title = content.title || '';
@@ -274,11 +302,13 @@ export function findBridgeContent(
         id = content.show?.id || '';
         genres = content.show?.genres || [];
         break;
-      case 'jikan':
+      case 'jikan': {
         title = content.data?.title || content.title || '';
-        id = content.data?.mal_id || content.id || '';
-        genres = content.data?.genres?.map((g: any) => g.name) || [];
+        id = content.data?.mal_id || content.mal_id || content.id || '';
+        const rawGenres = content.data?.genres || content.genres || [];
+        genres = rawGenres.map((g: any) => g.name || g) || [];
         break;
+      }
       case 'studioghibli':
         title = content.title || '';
         id = content.id || '';
@@ -288,8 +318,8 @@ export function findBridgeContent(
     if (!title) return;
 
     // Find content that matches at least one preference from each user
-    const matchesUser1 = genres.some((g) => analysis1.likedGenres.includes(g));
-    const matchesUser2 = genres.some((g) => analysis2.likedGenres.includes(g));
+    const matchesUser1 = genres.some((g) => isGenreMatch(g, analysis1.likedGenres));
+    const matchesUser2 = genres.some((g) => isGenreMatch(g, analysis2.likedGenres));
 
     if (matchesUser1 && matchesUser2) {
       recommendations.push({
