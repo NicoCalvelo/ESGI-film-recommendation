@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { User } from "@/app/_interfaces/user";
 import * as AuthService from "@/app/_services/AuthService";
+import { rsaEncrypt } from "@/app/_utils/rsaCrypto";
 
 interface UserContextType {
   user: User | null;
@@ -21,7 +22,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   function login(email: string, password: string): string | null {
-    const result = AuthService.login(email, password);
+    const encryptedPassword = rsaEncrypt(password);
+    const result = AuthService.login(email, encryptedPassword);
     if (typeof result === "string") return result;
     setUser(result);
     return null;
@@ -30,8 +32,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   function signUp(name: string, email: string, password: string): string | null {
     const salt = crypto.randomUUID();
     const saltedPassword = btoa(password + salt);
+    const encryptedSaltedPassword = rsaEncrypt(saltedPassword);
 
-    const result = AuthService.signUp(name, email, saltedPassword, salt);
+    const result = AuthService.signUp(name, email, encryptedSaltedPassword, salt);
     if (typeof result === "string") return result;
     setUser(result);
     return null;

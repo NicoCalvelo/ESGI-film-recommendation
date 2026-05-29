@@ -1,4 +1,5 @@
 import { User } from "@/app/_interfaces/user";
+import { rsaDecrypt } from "@/app/_utils/rsaCrypto";
 
 const USERS_KEY = "app_users";
 const CURRENT_USER_KEY = "app_current_user";
@@ -22,13 +23,14 @@ export function getCurrentUser(): User | null {
   return stored ? JSON.parse(stored) : null;
 }
 
-export function login(email: string, password: string): User | string {
+export function login(email: string, encryptedPassword: string): User | string {
   const users = getUsers();
   const user = users.find((u) => u.email === email);
   if (!user) {
     return "Identifiants incorrects.";
   }
 
+  const password = rsaDecrypt(encryptedPassword);
   const piment = process.env.NEXT_PUBLIC_PASSWORD_PIMENT;
   const saltedPassword = btoa(password + user.salt);
   const expectedPassword = btoa(saltedPassword + piment);
@@ -42,12 +44,13 @@ export function login(email: string, password: string): User | string {
   return userWithoutPassword;
 }
 
-export function signUp(name: string, email: string, saltedPassword: string, salt: string): User | string {
+export function signUp(name: string, email: string, encryptedSaltedPassword: string, salt: string): User | string {
   const users = getUsers();
   if (users.find((u) => u.email === email)) {
     return "Un compte avec cet email existe déjà.";
   }
 
+  const saltedPassword = rsaDecrypt(encryptedSaltedPassword);
   const piment = process.env.NEXT_PUBLIC_PASSWORD_PIMENT;
   const password = btoa(saltedPassword + piment);
 
