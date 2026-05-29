@@ -64,24 +64,26 @@ function RecommendationsContent() {
   const [compareLoading, setCompareLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
 
-  const loadRecommendations = useCallback(async (u: User) => {
+  const loadRecommendations = useCallback((u: User) => {
     setLoading(LOADING_ALL);
     setResults(EMPTY);
 
-    const [movies, series, anime, books] = await Promise.allSettled([
-      fetchRecommendations("studioghibli", u, 10, "films"),
-      fetchRecommendations("tvmaze", u, 10, "series"),
-      fetchRecommendations("jikan", u, 10, "anime"),
-      fetchRecommendations("gutendex", u, 10, "books"),
-    ]);
+    const fetch$ = <K extends keyof Results>(
+      key: K,
+      source: Parameters<typeof fetchRecommendations>[0],
+      type: Parameters<typeof fetchRecommendations>[3]
+    ) =>
+      fetchRecommendations(source, u, 10, type)
+        .then((data) => setResults((prev) => ({ ...prev, [key]: data })))
+        .catch(() => {})
+        .finally(() =>
+          setLoading((prev) => ({ ...prev, [key]: false }))
+        );
 
-    setResults({
-      movies: movies.status === "fulfilled" ? movies.value : [],
-      series: series.status === "fulfilled" ? series.value : [],
-      anime: anime.status === "fulfilled" ? anime.value : [],
-      books: books.status === "fulfilled" ? books.value : [],
-    });
-    setLoading(DONE_ALL);
+    fetch$("movies", "studioghibli", "films");
+    fetch$("series", "tvmaze", "series");
+    fetch$("anime", "jikan", "anime");
+    fetch$("books", "gutendex", "books");
   }, []);
 
   useEffect(() => {
@@ -100,7 +102,7 @@ function RecommendationsContent() {
       setSearchLoading(true);
       try {
         const params = new URLSearchParams({ query: searchQuery });
-        if (user?.id) params.set('excludeId', user.id);
+        if (user?.id) params.set("excludeId", user.id);
         const res = await fetch(`/api/users/search?${params.toString()}`);
         if (res.ok) {
           const data = await res.json();
@@ -186,8 +188,9 @@ function RecommendationsContent() {
           <p className="text-gray-400 text-sm">Basées sur vos goûts</p>
         </div>
       </div>
+
       {/* ── Compare section ── */}
-      <section className="my-16 border-t border-gray-700 pt-10">
+      <section className="mb-16 border-b border-gray-700 py-5">
         <div className="flex items-center gap-3 mb-6">
           <Users size={24} className="text-violet-400" />
           <div>
