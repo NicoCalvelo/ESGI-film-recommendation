@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     let url = 'https://api.jikan.moe/v4/anime';
 
     if (search) {
-      url += `?query=${encodeURIComponent(search)}&page=${page}`;
+      url += `?q=${encodeURIComponent(search)}&page=${page}`;
     } else {
       url += `?page=${page}`;
     }
