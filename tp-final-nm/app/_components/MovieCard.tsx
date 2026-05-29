@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Movie } from "../_interfaces/movie";
 
 interface MovieCardProps {
@@ -7,7 +8,7 @@ interface MovieCardProps {
 
 export default function MovieCard({ movie }: MovieCardProps) {
   return (
-    <div className="relative w-64 h-96 rounded-xl overflow-hidden shadow-2xl group cursor-pointer flex-shrink-0">
+    <Link href={`/details/movie/${movie.id}`} className="relative w-64 h-96 rounded-xl overflow-hidden shadow-2xl group cursor-pointer flex-shrink-0 block">
       {/* Background image */}
       <Image
         src={movie.image}
@@ -42,6 +43,6 @@ export default function MovieCard({ movie }: MovieCardProps) {
           <span className="text-amber-500 text-xs">⏱ {movie.running_time} min</span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

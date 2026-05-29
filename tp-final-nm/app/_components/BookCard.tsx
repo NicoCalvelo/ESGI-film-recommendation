@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Book } from "../_interfaces/book";
 
 interface BookCardProps {
@@ -10,7 +11,7 @@ export default function BookCard({ book }: BookCardProps) {
   const authorNames = book.authors.map((a) => a.name).join(", ") || "Auteur inconnu";
 
   return (
-    <div className="w-52 bg-gray-900 rounded-xl overflow-hidden shadow-lg border border-emerald-500/20 hover:border-emerald-500/60 hover:-translate-y-1 transition-all duration-300 cursor-pointer flex-shrink-0 flex flex-col">
+    <Link href={`/details/book/${book.id}`} className="w-52 bg-gray-900 rounded-xl overflow-hidden shadow-lg border border-emerald-500/20 hover:border-emerald-500/60 hover:-translate-y-1 transition-all duration-300 cursor-pointer flex-shrink-0 flex flex-col">
       {/* Book cover */}
       <div className="h-64 w-full relative overflow-hidden bg-emerald-950">
         {coverImage ? (
@@ -58,6 +59,6 @@ export default function BookCard({ book }: BookCardProps) {
           <span>⬇ {book.download_count.toLocaleString()} téléchargements</span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

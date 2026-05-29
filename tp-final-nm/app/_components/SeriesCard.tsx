@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Series } from "../_interfaces/series";
 
 interface SeriesCardProps {
@@ -11,7 +12,7 @@ export default function SeriesCard({ series }: SeriesCardProps) {
   const statusColor = show.status === "Running" ? "text-green-400" : "text-gray-400";
 
   return (
-    <div className="flex w-80 bg-gray-900 rounded-xl overflow-hidden shadow-lg border border-indigo-500/20 hover:border-indigo-500/60 transition-all duration-300 cursor-pointer group flex-shrink-0">
+    <Link href={`/details/series/${show.id}`} className="flex w-80 bg-gray-900 rounded-xl overflow-hidden shadow-lg border border-indigo-500/20 hover:border-indigo-500/60 transition-all duration-300 cursor-pointer group flex-shrink-0">
       {/* Poster */}
       <div className="w-28 h-full min-h-[160px] flex-shrink-0 overflow-hidden relative">
         {show.image ? (
@@ -67,6 +68,6 @@ export default function SeriesCard({ series }: SeriesCardProps) {
           {show.language && <span>🌐 {show.language}</span>}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

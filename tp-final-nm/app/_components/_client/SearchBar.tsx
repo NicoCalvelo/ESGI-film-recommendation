@@ -6,10 +6,11 @@ import { useEffect, useRef, useState } from "react";
 interface SearchBarProps {
   onSearch: (query: string) => void;
   collapsed?: boolean;
+  initialValue?: string;
 }
 
-export default function SearchBar({ onSearch, collapsed = false }: SearchBarProps) {
-  const [value, setValue] = useState("");
+export default function SearchBar({ onSearch, collapsed = false, initialValue = "" }: SearchBarProps) {
+  const [value, setValue] = useState(initialValue);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

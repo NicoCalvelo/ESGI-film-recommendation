@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import SearchBar from "./_components/_client/SearchBar";
 import HorizontalRow from "./_components/HorizontalRow";
 import MovieCard from "./_components/MovieCard";
@@ -31,13 +32,16 @@ const LOADING_ALL: Loading = { movies: true, series: true, anime: true, books: t
 const DONE_ALL: Loading = { movies: false, series: false, anime: false, books: false };
 const EMPTY: Results = { movies: [], series: [], anime: [], books: [] };
 
-export default function Home() {
+function HomeContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [hasSearched, setHasSearched] = useState(false);
   const [results, setResults] = useState<Results>(EMPTY);
   const [loading, setLoading] = useState<Loading>(DONE_ALL);
   const [lastQuery, setLastQuery] = useState("");
 
-  const handleSearch = useCallback(async (query: string) => {
+  const runSearch = useCallback(async (query: string) => {
     if (!query) return;
 
     setHasSearched(true);
@@ -88,6 +92,27 @@ export default function Home() {
     await Promise.allSettled([fetchMovies, fetchSeries, fetchAnime, fetchBooks]);
   }, []);
 
+  // Sync with URL param on mount and on back/forward navigation
+  useEffect(() => {
+    const q = searchParams.get("q") ?? "";
+    if (q) {
+      runSearch(q);
+    }
+  }, [searchParams, runSearch]);
+
+  const handleSearch = useCallback(
+    (query: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (query) {
+        params.set("q", query);
+      } else {
+        params.delete("q");
+      }
+      router.push(`?${params.toString()}`);
+    },
+    [router, searchParams],
+  );
+
   return (
     <main className="min-h-screen">
       {/* ── Search hero / header ── */}
@@ -111,7 +136,7 @@ export default function Home() {
               Résultats pour <span className="text-indigo-300 font-medium">«{lastQuery}»</span>
             </p>
           )}
-          <SearchBar onSearch={handleSearch} collapsed={hasSearched} />
+          <SearchBar onSearch={handleSearch} collapsed={hasSearched} initialValue={searchParams.get("q") ?? ""} />
         </div>
       </div>
 
@@ -176,5 +201,13 @@ export default function Home() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense>
+      <HomeContent />
+    </Suspense>
   );
 }

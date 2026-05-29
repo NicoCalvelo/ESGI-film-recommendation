@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Anime } from "../_interfaces/anime";
 
 interface AnimeCardProps {
@@ -9,7 +10,7 @@ export default function AnimeCard({ anime }: AnimeCardProps) {
   const image = anime.images.webp?.large_image_url ?? anime.images.jpg?.large_image_url ?? null;
 
   return (
-    <div className="relative w-56 bg-gray-900 rounded-xl overflow-hidden shadow-2xl border border-fuchsia-500/20 hover:border-fuchsia-500/70 hover:shadow-fuchsia-500/20 hover:shadow-xl transition-all duration-300 cursor-pointer group flex-shrink-0 flex flex-col">
+    <Link href={`/details/anime/${anime.mal_id}`} className="relative w-56 bg-gray-900 rounded-xl overflow-hidden shadow-2xl border border-fuchsia-500/20 hover:border-fuchsia-500/70 hover:shadow-fuchsia-500/20 hover:shadow-xl transition-all duration-300 cursor-pointer group flex-shrink-0 flex flex-col">
       {/* Image */}
       <div className="h-72 w-full relative overflow-hidden">
         {image ? (
@@ -72,6 +73,6 @@ export default function AnimeCard({ anime }: AnimeCardProps) {
           </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
