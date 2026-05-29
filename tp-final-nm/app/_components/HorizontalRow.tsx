@@ -55,7 +55,7 @@ export default function HorizontalRow({
       ) : empty ? (
         <p className="text-gray-500 italic text-sm pl-1">{emptyMessage}</p>
       ) : (
-        <div className="group relative">
+        <div className="relative">
           {/* Left arrow */}
           <button
             onClick={() => scroll("left")}
