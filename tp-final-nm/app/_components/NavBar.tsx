@@ -20,7 +20,7 @@ export default function NavBar() {
           <Link
             key={path.href}
             href={path.href}
-            className="text-lg hover:bg-blue-900 hover:underline rounded-t hover:rounded px-3 py-2 cursor-pointer transition border-b last:border-b-0 border-gray-700"
+            className="text-lg !text-white hover:bg-blue-900 hover:underline rounded-t hover:rounded px-3 py-2 cursor-pointer transition border-b last:border-b-0 border-gray-700"
           >
             {path.icon && <path.icon className="inline-block mr-2" />}
             <span>{path.name}</span>

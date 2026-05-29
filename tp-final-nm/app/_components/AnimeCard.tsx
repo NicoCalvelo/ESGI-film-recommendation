@@ -17,7 +17,6 @@ export default function AnimeCard({ anime }: AnimeCardProps) {
         href={`/details/anime/${anime.mal_id}`}
         className="relative w-56 h-full bg-gray-900 rounded-xl overflow-hidden shadow-2xl border border-fuchsia-500/20 hover:border-fuchsia-500/70 hover:shadow-fuchsia-500/20 hover:shadow-xl transition-all duration-300 cursor-pointer group flex-shrink-0 flex flex-col"
       >
-        {/* Image */}
         <div className="h-72 w-full relative overflow-hidden">
           {image ? (
             <Image

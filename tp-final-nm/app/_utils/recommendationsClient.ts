@@ -7,7 +7,8 @@ import { RecommendationItem } from "@/app/_services/RecommendationsService";
 export async function fetchRecommendations(
   source: 'gutendex' | 'tvmaze' | 'jikan' | 'studioghibli',
   userPreferences: User,
-  limit: number = 10
+  limit: number = 10,
+  category?: keyof User['likes']
 ): Promise<RecommendationItem[]> {
   try {
     const response = await fetch('/api/recommendations', {
@@ -19,6 +20,7 @@ export async function fetchRecommendations(
         source,
         userPreferences,
         limit,
+        category,
       }),
     });
 

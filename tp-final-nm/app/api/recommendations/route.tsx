@@ -5,7 +5,7 @@ import { User } from '@/app/_interfaces/user';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { source, limit = 10, userPreferences } = body;
+    const { source, limit = 10, userPreferences, category } = body;
 
     if (!source || !userPreferences) {
       return NextResponse.json(
@@ -15,44 +15,59 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch content from the appropriate API
-    let contentUrl = '';
     let fetchedContent = [];
 
     switch (source) {
-      case 'gutendex':
-        contentUrl = 'https://gutendex.com/books';
-        const gutendexResponse = await fetch(contentUrl);
+      case 'gutendex': {
+        const gutendexResponse = await fetch('https://gutendex.com/books');
         if (gutendexResponse.ok) {
           const data = await gutendexResponse.json();
           fetchedContent = data.results || [];
         }
         break;
+      }
 
-      case 'jikan':
-        contentUrl = 'https://api.jikan.moe/v4/anime';
-        const jikanResponse = await fetch(contentUrl);
+      case 'jikan': {
+        const jikanResponse = await fetch('https://api.jikan.moe/v4/anime');
         if (jikanResponse.ok) {
           const data = await jikanResponse.json();
           fetchedContent = data.data || [];
         }
         break;
+      }
 
-      case 'tvmaze':
-        return NextResponse.json(
-          { 
-            recommendations: [],
-            message: 'TVMaze requires a search query. Use /api/tvmaze/getList?search=<query>' 
-          },
-          { status: 200 }
+      case 'tvmaze': {
+        // Search by the user's liked genres to get relevant content
+        const genres: string[] = userPreferences.likes?.genres ?? [];
+        const queries = genres.slice(0, 3).length > 0 ? genres.slice(0, 3) : ['drama'];
+        const seen = new Set<number>();
+
+        const results = await Promise.all(
+          queries.map((q: string) =>
+            fetch(`https://api.tvmaze.com/search/shows?q=${encodeURIComponent(q)}`)
+              .then((r) => (r.ok ? r.json() : []))
+              .catch(() => [])
+          )
         );
 
-      case 'studioghibli':
-        contentUrl = 'https://ghibliapi.dev/films';
-        const ghibliResponse = await fetch(contentUrl);
+        for (const batch of results) {
+          for (const item of batch) {
+            if (item?.show?.id && !seen.has(item.show.id)) {
+              seen.add(item.show.id);
+              fetchedContent.push(item);
+            }
+          }
+        }
+        break;
+      }
+
+      case 'studioghibli': {
+        const ghibliResponse = await fetch('https://ghibliapi.dev/films');
         if (ghibliResponse.ok) {
           fetchedContent = await ghibliResponse.json();
         }
         break;
+      }
 
       default:
         return NextResponse.json(
@@ -72,13 +87,12 @@ export async function POST(request: NextRequest) {
     // and use it to generate recommendations
     const tempUser: User = userPreferences;
 
-    // Since we're on server-side, we need to pass the user data explicitly
-    // to the generateUserRecommendations function
     const recommendations = generateUserRecommendations(
       fetchedContent,
       source as 'gutendex' | 'tvmaze' | 'jikan' | 'studioghibli',
       undefined,
-      tempUser
+      tempUser,
+      category
     );
 
     const limitedRecommendations = recommendations.slice(0, Math.min(limit, 20));

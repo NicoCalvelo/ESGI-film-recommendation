@@ -110,12 +110,14 @@ export function generateUserRecommendations(
   contentList: any[],
   source: 'gutendex' | 'tvmaze' | 'jikan' | 'studioghibli',
   libraryItems?: (string | number)[],
-  userOverride?: User // Optional user object (for server-side calls)
+  userOverride?: User, // Optional user object (for server-side calls)
+  category?: keyof User['likes'] // If provided, titles already liked in this category are excluded
 ): RecommendationItem[] {
   const user = userOverride || getCurrentUser();
   if (!user) return [];
 
   const analysis = analyzeUserPreferences(user);
+  const likedTitles = category ? user.likes[category].map((t) => t.toLowerCase()) : [];
   const recommendations: RecommendationItem[] = [];
 
   contentList.forEach((content) => {
@@ -166,6 +168,9 @@ export function generateUserRecommendations(
     }
 
     if (!title) return;
+
+    // Skip if already liked by the user in the given category
+    if (likedTitles.includes(title.toLowerCase())) return;
 
     const { score, reasons } = calculateMatchScore(genres, actors, directors, analysis);
 
